@@ -1,6 +1,7 @@
 ﻿
 #include <iostream>
 #include <string>
+#include <fstream>
 using namespace std;
 struct Pipe
 {
@@ -18,24 +19,21 @@ struct CS
 	int classStation;
 };
 
-Pipe newPipe()
+ void newPipe(Pipe&pipe)
 {
-	Pipe p;
 	cout << "Введите название трубы : ";
-	cin >> p.name;
+	cin >> pipe.name;
 	cout << "Введите длину трубы(км): ";
-	cin >> p.length;
+	cin >> pipe.length;
 	cout << "Введите диаметр трубы(мм): ";
-	cin >> p.diameter;
+	cin >> pipe.diameter;
 	cout << "Труба в ремонте? (1 - да, 0 - нет): ";
-	cin >> p.repair;
-	
-	return p;
+	cin >> pipe.repair;
+
 }
 
-CS newCS()
+void newCS(CS&cs)
 {
-	CS cs;
 	cout << "Введите название КС: ";
 	cin >> cs.name;
 	cout << "Введите количество цехов: ";
@@ -45,13 +43,129 @@ CS newCS()
 	cout << "Введите класс станции (1 - маленькая, 2 - средняя, 3 - крупная): ";
 	cin >> cs.classStation;
 
-	return cs;
 }
+
+void printPipe(const Pipe& pipe)
+{
+	cout << "Название трубы: " << pipe.name << endl;
+	cout << "Длина трубы: " << pipe.length << endl;
+	cout << "Диаметр трубы: " << pipe.diameter << endl;
+	cout << "Труба в ремонте?: " << (pipe.repair? "Да":"Нет") << endl;
+}
+
+void printCS(const CS& cs)
+{
+	cout << "Название КС: " << cs.name << endl;
+	cout << "Количество цехов: " << cs.countWorkshops << endl;
+	cout << "Количество цехов в работе: " << cs.workingWorkshops << endl;
+	cout << "Класс станции: " << cs.classStation << endl;
+}
+
+void editPipe(Pipe& pipe)
+{
+	cout << "Режим редактирования трубы" << endl;
+	cout << "Отправить в ремонт - 1" << endl;
+	cout << "Убрать из ремонта - 2" << endl;
+	int vibor;
+	cout << "Сделайте выбор: ";
+	cin >> vibor;
+
+	if (vibor == 1)
+	{
+		pipe.repair = true;
+		cout << "Труба теперь в ремонте";
+	}
+	else if (vibor == 2)
+	{
+		pipe.repair = false;
+		cout << "Труба больше не в ремонте";
+	}
+}
+
+void editCS(CS& cs)
+{
+	cout << "Режим редактирования КС" << endl;
+	cout << "Запустить цех - 1" << endl;
+	cout << "Остановить цех - 2" << endl;
+	int vibor;
+	cout << "Сделайте выбор";
+	cin >> vibor;
+
+	if (vibor == 1)
+	{
+		if (cs.workingWorkshops != cs.countWorkshops)
+		{
+			++cs.workingWorkshops;
+			cout << "Цех запущен";
+		}
+		else
+		{
+			cout << "Все цеха уже запущены";
+		}
+	}
+	else if (vibor == 2)
+	{
+		if (cs.workingWorkshops > 0)
+		{
+			--cs.workingWorkshops;
+			cout << "Цех остановлен";
+		}
+		else
+		{
+			cout << "Нет запущенных цехов";
+		}
+	}
+}
+
+void saveFile(const Pipe& pipe, const CS& cs)
+{
+	ofstream fout("file.txt");
+	fout << pipe.name << endl;
+	fout << pipe.length << endl;
+	fout << pipe.diameter << endl;
+	fout << pipe.repair << endl;
+
+	fout << cs.name << endl;
+	fout << cs.countWorkshops << endl;
+	fout << cs.workingWorkshops << endl;
+	fout << cs.classStation << endl;
+	
+	fout.close();
+
+}
+
+void zagruzitFile(Pipe& pipe, CS& cs)
+{
+	ifstream fin("file.txt");
+	fin >> pipe.name;
+	fin >> pipe.length;
+	fin >> pipe.diameter;
+	fin >> pipe.repair;
+
+	fin >> cs.name;
+	fin >> cs.countWorkshops;
+	fin >> cs.workingWorkshops;
+	fin >> cs.classStation;
+
+	fin.close();
+}
+
 
 int main()
 {
 	setlocale(LC_ALL, "RU");
-	Pipe pipe = newPipe();
-	CS cs = newCS();
+	Pipe pipe;
+	CS cs;
+	newPipe(pipe);
+	newCS(cs);
+	printPipe(pipe);
+	printCS(cs);
+	editPipe(pipe);
+	editCS(cs);
+	saveFile(pipe, cs);
+	zagruzitFile(pipe, cs);
+
+
+
 	return 0;
 }
