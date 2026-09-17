@@ -25,6 +25,11 @@ struct CS
 	cin >> pipe.name;
 	cout << "Введите длину трубы(км): ";
 	cin >> pipe.length;
+	while (!proverkaVvoda() || pipe.diameter <= 0)
+	{
+		cout << "Ошибка. Введите положительное число: ";
+		cin >> pipe.length;
+	}
 	cout << "Введите диаметр трубы(мм): ";
 	cin >> pipe.diameter;
 	cout << "Труба в ремонте? (1 - да, 0 - нет): ";
@@ -120,52 +125,170 @@ void editCS(CS& cs)
 void saveFile(const Pipe& pipe, const CS& cs)
 {
 	ofstream fout("file.txt");
-	fout << pipe.name << endl;
-	fout << pipe.length << endl;
-	fout << pipe.diameter << endl;
-	fout << pipe.repair << endl;
 
-	fout << cs.name << endl;
-	fout << cs.countWorkshops << endl;
-	fout << cs.workingWorkshops << endl;
-	fout << cs.classStation << endl;
-	
+	if (fout)
+	{
+		fout << pipe.name << endl;
+		fout << pipe.length << endl;
+		fout << pipe.diameter << endl;
+		fout << pipe.repair << endl;
+
+		fout << cs.name << endl;
+		fout << cs.countWorkshops << endl;
+		fout << cs.workingWorkshops << endl;
+		fout << cs.classStation << endl;
+	}
+	else
+	{
+		cout << "Ошибка записи в файл" << endl;
+	}
 	fout.close();
+	
 
 }
 
 void zagruzitFile(Pipe& pipe, CS& cs)
 {
 	ifstream fin("file.txt");
-	fin >> pipe.name;
-	fin >> pipe.length;
-	fin >> pipe.diameter;
-	fin >> pipe.repair;
 
-	fin >> cs.name;
-	fin >> cs.countWorkshops;
-	fin >> cs.workingWorkshops;
-	fin >> cs.classStation;
+	if (fin)
+	{
+		fin >> pipe.name;
+		fin >> pipe.length;
+		fin >> pipe.diameter;
+		fin >> pipe.repair;
 
+		fin >> cs.name;
+		fin >> cs.countWorkshops;
+		fin >> cs.workingWorkshops;
+		fin >> cs.classStation;
+
+		cout << "Данные загружены" << endl;
+	}
+	else
+	{
+		cout << "Ошибка загрузки данных из файла";
+	}
 	fin.close();
+}
+
+bool proverkaVvoda()
+{
+	if (cin.fail)
+	{
+		cin.clear();
+		cin.ignore(100, '\n');
+
+		return false;
+	}
+	return true;
 }
 
 
 int main()
 {
 	setlocale(LC_ALL, "RU");
+
 	Pipe pipe;
 	CS cs;
-	newPipe(pipe);
-	newCS(cs);
-	printPipe(pipe);
-	printCS(cs);
-	editPipe(pipe);
-	editCS(cs);
-	saveFile(pipe, cs);
-	zagruzitFile(pipe, cs);
+
+	while (true)
+	{
+		cout << "1. Добавить трубу" << endl;
+		cout << "2. Добавить КС" << endl;
+		cout << "3. Просмотр всех объектов" << endl;
+		cout << "4. Редактировать трубу" << endl;
+		cout << "5. Редактировать КС" << endl;
+		cout << "6. Сохранить" << endl;
+		cout << "7. Загрузить" << endl;
+		cout << "0. Выход" << endl;
+
+		int vibor;
+		cout << "Сделайте выбор: ";
+		cin >> vibor;
+
+		while (cin.fail())
+		{
+			cout << "Ошибка. Введите число из меню: ";
+			cin.clear();
+			cin.ignore(100, '\n');
+			cin >> vibor;
+		}
+
+
+		switch (vibor)
+		{
+		case 1:
+			newPipe(pipe);
+			break;
+		case 2:
+			newCS(cs);
+			break;
+		case 3:
+			if (pipe.name.empty())
+			{
+				cout << "Труба не создана. Ее просмотр невозможен." << endl;
+			}
+			else
+			{
+				printPipe(pipe);
+			}
+			if (cs.name.empty())
+			{
+				cout << "КС не создана. Ее просмотр невозможен." << endl;
+			}
+			else
+			{
+				printCS(cs);
+			}
+			break;
+		case 4:
+			if (pipe.name.empty())
+			{
+				cout << "Труба не создана. Редактирование невозможно." << endl;
+			}
+			else
+			{
+				editPipe(pipe);
+			}
+			break;
+		case 5:
+			if (cs.name.empty())
+			{
+				cout << "КС не создана. Редактирование невозможно." << endl;
+			}
+			else
+			{
+				editCS(cs);
+			}
+			break;
+		case 6:
+			if (pipe.name.empty() || cs.name.empty())
+			{
+				cout << "Не все данные заполнены. Сохранение невозможно" << endl;
+			}
+			else
+			{
+				saveFile(pipe, cs);
+				cout << "Данные сохранены" << endl;
+			}
+			break;
+		case 7:
+			zagruzitFile(pipe, cs);
+			break;
+		case 0:
+			return 0;
+		default:
+			cout << "Ошибка. Введите число из меню" << endl;
+		}
 
 
 
+
+
+	}
+
+
+	
 	return 0;
 }
