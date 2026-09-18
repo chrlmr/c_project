@@ -6,7 +6,7 @@ using namespace std;
 struct Pipe
 {
 	string name;
-	double length;
+	int length;
 	int diameter;
 	bool repair;
 };
@@ -19,21 +19,50 @@ struct CS
 	int classStation;
 };
 
- void newPipe(Pipe&pipe)
+int proverkaVvoda()
+{
+	int number;
+	cin >> number;
+
+	while (cin.fail() || cin.peek() != '\n')
+	{
+		cin.clear();
+		cin.ignore(100, '\n');
+
+		cout << "Ошибка. Введите целое число: ";
+		cin >> number;
+	}
+	return number;
+}
+
+void newPipe(Pipe& pipe)
 {
 	cout << "Введите название трубы : ";
 	cin >> pipe.name;
+
 	cout << "Введите длину трубы(км): ";
-	cin >> pipe.length;
-	while (!proverkaVvoda() || pipe.diameter <= 0)
+	pipe.length = proverkaVvoda();
+	while (pipe.length <= 0)
 	{
 		cout << "Ошибка. Введите положительное число: ";
-		cin >> pipe.length;
+		pipe.length = proverkaVvoda();
 	}
+
 	cout << "Введите диаметр трубы(мм): ";
-	cin >> pipe.diameter;
+	pipe.diameter = proverkaVvoda();
+	while (pipe.diameter <= 0)
+	{
+		cout << "Ошибка. Введите положительное число";
+		pipe.diameter = proverkaVvoda();
+	}
 	cout << "Труба в ремонте? (1 - да, 0 - нет): ";
-	cin >> pipe.repair;
+	int remont = proverkaVvoda();
+	while (remont < 0 || remont > 1)
+	{
+		cout << "Ошибка. Введите 1 или 0: ";
+		remont = proverkaVvoda();
+	}
+	pipe.repair = remont;
 
 }
 
@@ -41,12 +70,30 @@ void newCS(CS&cs)
 {
 	cout << "Введите название КС: ";
 	cin >> cs.name;
+
 	cout << "Введите количество цехов: ";
-	cin >> cs.countWorkshops;
+	cs.countWorkshops = proverkaVvoda();
+	while (cs.countWorkshops <= 0)
+	{
+		cout << "Ошибка. Количество должно быть больше 0: ";
+		cs.countWorkshops = proverkaVvoda();
+	}
+
 	cout << "Введите количество цехов в работе: ";
-	cin >> cs.workingWorkshops;
+	cs.workingWorkshops = proverkaVvoda();
+	while (cs.workingWorkshops < 0 || cs.workingWorkshops > cs.countWorkshops)
+	{
+		cout << "Ошибка. Количество работающих цехов может быть от 0 до " << cs.countWorkshops << ": ";
+		cs.workingWorkshops = proverkaVvoda();
+	}
 	cout << "Введите класс станции (1 - маленькая, 2 - средняя, 3 - крупная): ";
-	cin >> cs.classStation;
+	cs.classStation = proverkaVvoda();
+	while (cs.classStation < 1 || cs.classStation >3)
+	{
+		cout << "Ошибка. Введите число от 1 до 3: ";
+		cs.classStation = proverkaVvoda();
+	}
+
 
 }
 
@@ -73,17 +120,38 @@ void editPipe(Pipe& pipe)
 	cout << "Убрать из ремонта - 2" << endl;
 	int vibor;
 	cout << "Сделайте выбор: ";
-	cin >> vibor;
+	vibor = proverkaVvoda();
+	while (vibor < 1 || vibor >2)
+	{
+		cout << "Ошибка. Введите 1 или 2: ";
+		vibor = proverkaVvoda();
+	}
 
 	if (vibor == 1)
 	{
-		pipe.repair = true;
-		cout << "Труба теперь в ремонте";
+		if (pipe.repair == false)
+		{
+			pipe.repair = true;
+			cout << "Труба теперь в ремонте" << endl;
+		}
+		else
+		{
+			cout << "Труба уже в ремонте" << endl;
+		}
+		
 	}
-	else if (vibor == 2)
+	if (vibor == 2)
 	{
-		pipe.repair = false;
-		cout << "Труба больше не в ремонте";
+		if (pipe.repair == true)
+		{
+			pipe.repair = false;
+			cout << "Труба больше не в ремонте" << endl;
+		}
+		else
+		{
+			cout << "Труба уже не в ремонте" << endl;
+		}
+		
 	}
 }
 
@@ -93,31 +161,36 @@ void editCS(CS& cs)
 	cout << "Запустить цех - 1" << endl;
 	cout << "Остановить цех - 2" << endl;
 	int vibor;
-	cout << "Сделайте выбор";
-	cin >> vibor;
+	cout << "Сделайте выбор :" << endl;
+	vibor = proverkaVvoda();
+	while (vibor <1 || vibor >2)
+	{
+		cout << "Ошибка. Введите 1 или 2: ";
+		vibor = proverkaVvoda();
+	}
 
 	if (vibor == 1)
 	{
 		if (cs.workingWorkshops != cs.countWorkshops)
 		{
 			++cs.workingWorkshops;
-			cout << "Цех запущен";
+			cout << "Цех запущен" << endl;
 		}
 		else
 		{
-			cout << "Все цеха уже запущены";
+			cout << "Все цеха уже запущены" << endl;
 		}
 	}
-	else if (vibor == 2)
+	if (vibor == 2)
 	{
 		if (cs.workingWorkshops > 0)
 		{
 			--cs.workingWorkshops;
-			cout << "Цех остановлен";
+			cout << "Цех остановлен" << endl;
 		}
 		else
 		{
-			cout << "Нет запущенных цехов";
+			cout << "Невозможно остановить цех, т.к. нет запущенных цехов" << endl;
 		}
 	}
 }
@@ -137,12 +210,13 @@ void saveFile(const Pipe& pipe, const CS& cs)
 		fout << cs.countWorkshops << endl;
 		fout << cs.workingWorkshops << endl;
 		fout << cs.classStation << endl;
+
+		cout << "Данные сохранены" << endl;
 	}
 	else
 	{
 		cout << "Ошибка записи в файл" << endl;
 	}
-	fout.close();
 	
 
 }
@@ -169,20 +243,9 @@ void zagruzitFile(Pipe& pipe, CS& cs)
 	{
 		cout << "Ошибка загрузки данных из файла";
 	}
-	fin.close();
+
 }
 
-bool proverkaVvoda()
-{
-	if (cin.fail)
-	{
-		cin.clear();
-		cin.ignore(100, '\n');
-
-		return false;
-	}
-	return true;
-}
 
 
 int main()
@@ -205,16 +268,13 @@ int main()
 
 		int vibor;
 		cout << "Сделайте выбор: ";
-		cin >> vibor;
+		vibor = proverkaVvoda();
 
-		while (cin.fail())
+		while (vibor < 0 || vibor >7)
 		{
 			cout << "Ошибка. Введите число из меню: ";
-			cin.clear();
-			cin.ignore(100, '\n');
-			cin >> vibor;
+			vibor = proverkaVvoda();
 		}
-
 
 		switch (vibor)
 		{
@@ -270,7 +330,6 @@ int main()
 			else
 			{
 				saveFile(pipe, cs);
-				cout << "Данные сохранены" << endl;
 			}
 			break;
 		case 7:
