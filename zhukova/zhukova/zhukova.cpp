@@ -38,7 +38,7 @@ int proverkaVvoda()
 void newPipe(Pipe& pipe)
 {
 	cout << "Введите название трубы : ";
-	cin >> pipe.name;
+	getline(cin >> ws, pipe.name);
 
 	cout << "Введите длину трубы(км): ";
 	pipe.length = proverkaVvoda();
@@ -69,7 +69,7 @@ void newPipe(Pipe& pipe)
 void newCS(CS&cs)
 {
 	cout << "Введите название КС: ";
-	cin >> cs.name;
+	getline(cin >> ws, cs.name);
 
 	cout << "Введите количество цехов: ";
 	cs.countWorkshops = proverkaVvoda();
@@ -195,27 +195,56 @@ void editCS(CS& cs)
 	}
 }
 
+void savePipe(ofstream& file, const Pipe& pipe)
+{
+	file << pipe.name << endl;
+	file << pipe.length << endl;
+	file << pipe.diameter << endl;
+	file << pipe.repair << endl;
+}
+
+void saveCS(ofstream& file, const CS& cs)
+{
+	file << cs.name << endl;
+	file << cs.countWorkshops << endl;
+	file << cs.workingWorkshops << endl;
+	file << cs.classStation << endl;
+}
+
+void zagruzkaPipe(ifstream& file, Pipe& pipe)
+{
+	getline(file >> ws, pipe.name);
+	file >> pipe.length;
+	file >> pipe.diameter;
+	file >> pipe.repair;
+}
+
+void zagruzkaCS(ifstream& file, CS&cs)
+{
+	getline(file >> ws, cs.name);
+	file >> cs.countWorkshops;
+	file >> cs.workingWorkshops;
+	file >> cs.classStation;
+}
+
+
 void saveFile(const Pipe& pipe, const CS& cs)
 {
-	ofstream fout("file.txt");
+	string name;
+	cout << "Введите имя файла с расширением: ";
+	getline(cin >> ws, name);
+	ofstream file(name);
 
-	if (fout)
+	if (!file.is_open())
 	{
-		fout << pipe.name << endl;
-		fout << pipe.length << endl;
-		fout << pipe.diameter << endl;
-		fout << pipe.repair << endl;
+		cout << "Ошибка открытия файла" << endl;
 
-		fout << cs.name << endl;
-		fout << cs.countWorkshops << endl;
-		fout << cs.workingWorkshops << endl;
-		fout << cs.classStation << endl;
-
-		cout << "Данные сохранены" << endl;
 	}
 	else
 	{
-		cout << "Ошибка записи в файл" << endl;
+		savePipe(file, pipe);
+		saveCS(file, cs);
+		cout << "Данные сохранены" << endl;
 	}
 	
 
@@ -223,26 +252,21 @@ void saveFile(const Pipe& pipe, const CS& cs)
 
 void zagruzitFile(Pipe& pipe, CS& cs)
 {
-	ifstream fin("file.txt");
+	string name;
+	cout << "Введите имя файла с расширением: ";
+	getline(cin >> ws, name);
+	ifstream file(name);
 
-	if (fin)
+	if (!file.is_open())
 	{
-		fin >> pipe.name;
-		fin >> pipe.length;
-		fin >> pipe.diameter;
-		fin >> pipe.repair;
-
-		fin >> cs.name;
-		fin >> cs.countWorkshops;
-		fin >> cs.workingWorkshops;
-		fin >> cs.classStation;
-
-		cout << "Данные загружены" << endl;
+		cout << "Ошибка чтения данных" << endl;
 	}
 	else
 	{
-		cout << "Ошибка загрузки данных из файла";
-	}
+		zagruzkaPipe(file, pipe);
+		zagruzkaCS(file, cs);
+		cout << "Данные загружены" << endl;
+	}	
 
 }
 
