@@ -66,7 +66,7 @@ void newPipe(Pipe& pipe)
 
 }
 
-void newCS(CS&cs)
+void newCS(CS& cs)
 {
 	cout << "Введите название КС: ";
 	getline(cin >> ws, cs.name);
@@ -116,43 +116,21 @@ void printCS(const CS& cs)
 void editPipe(Pipe& pipe)
 {
 	cout << "Режим редактирования трубы" << endl;
+	cout << "Убрать из ремонта - 0" << endl;
 	cout << "Отправить в ремонт - 1" << endl;
-	cout << "Убрать из ремонта - 2" << endl;
-	int vibor;
+
 	cout << "Сделайте выбор: ";
-	vibor = proverkaVvoda();
-	while (vibor < 1 || vibor >2)
+
+	int vibor = proverkaVvoda();
+
+	while (vibor < 0 || vibor > 1)
 	{
-		cout << "Ошибка. Введите 1 или 2: ";
+		cout << "Ошибка. Введите 0 или 1: ";
 		vibor = proverkaVvoda();
 	}
 
-	if (vibor == 1)
-	{
-		if (pipe.repair == false)
-		{
-			pipe.repair = true;
-			cout << "Труба теперь в ремонте" << endl;
-		}
-		else
-		{
-			cout << "Труба уже в ремонте" << endl;
-		}
-		
-	}
-	if (vibor == 2)
-	{
-		if (pipe.repair == true)
-		{
-			pipe.repair = false;
-			cout << "Труба больше не в ремонте" << endl;
-		}
-		else
-		{
-			cout << "Труба уже не в ремонте" << endl;
-		}
-		
-	}
+	pipe.repair = vibor;
+	cout << "Труба в ремонте: " << (vibor ? "Да" : "Нет") << endl;
 }
 
 void editCS(CS& cs)
@@ -197,6 +175,10 @@ void editCS(CS& cs)
 
 void savePipe(ofstream& file, const Pipe& pipe)
 {
+	if (pipe.name.empty()) {
+		return;
+	}
+
 	file << pipe.name << endl;
 	file << pipe.length << endl;
 	file << pipe.diameter << endl;
@@ -205,6 +187,9 @@ void savePipe(ofstream& file, const Pipe& pipe)
 
 void saveCS(ofstream& file, const CS& cs)
 {
+	if (cs.name.empty()) {
+		return;
+	}
 	file << cs.name << endl;
 	file << cs.countWorkshops << endl;
 	file << cs.workingWorkshops << endl;
@@ -238,14 +223,12 @@ void saveFile(const Pipe& pipe, const CS& cs)
 	if (!file.is_open())
 	{
 		cout << "Ошибка открытия файла" << endl;
-
+		return; 
 	}
-	else
-	{
-		savePipe(file, pipe);
-		saveCS(file, cs);
-		cout << "Данные сохранены" << endl;
-	}
+	
+	savePipe(file, pipe);
+	saveCS(file, cs);
+	cout << "Данные сохранены" << endl;
 	
 
 }
@@ -269,8 +252,6 @@ void zagruzitFile(Pipe& pipe, CS& cs)
 	}	
 
 }
-
-
 
 int main()
 {
@@ -347,14 +328,7 @@ int main()
 			}
 			break;
 		case 6:
-			if (pipe.name.empty() || cs.name.empty())
-			{
-				cout << "Не все данные заполнены. Сохранение невозможно" << endl;
-			}
-			else
-			{
-				saveFile(pipe, cs);
-			}
+			saveFile(pipe, cs);
 			break;
 		case 7:
 			zagruzitFile(pipe, cs);
@@ -364,14 +338,7 @@ int main()
 		default:
 			cout << "Ошибка. Введите число из меню" << endl;
 		}
-
-
-
-
-
 	}
 
-
-	
 	return 0;
 }
