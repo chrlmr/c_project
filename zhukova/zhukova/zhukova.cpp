@@ -3,20 +3,126 @@
 #include <string>
 #include <fstream>
 using namespace std;
-struct Pipe
+
+class Pipe
 {
+private:
 	string name;
 	int length;
 	int diameter;
 	bool repair;
+
+public:
+	void setName(string value)
+	{
+		name = value;
+	}
+
+	string getName()
+	{
+		return name
+	}
+
+	void setLength(int value)
+	{
+		length = value;
+	}
+
+	int getLength()
+	{
+		return length;
+	}
+
+	void setDiameter(int value)
+	{
+		diameter = value;
+	}
+
+	int getDiameter()
+	{
+		return diameter;
+	}
+
+	void setRepair(bool value)
+	{
+		repair = value;
+	}
+
+	bool getRepair()
+	{
+		return repair;
+	}
+
+	void printPipe()
+	{
+		cout << "Название трубы: " << name << endl;
+		cout << "Длина трубы: " << length << endl;
+		cout << "Диаметр трубы: " << diameter << endl;
+		cout << "Труба в ремонте?: " << (repair ? "Да" : "Нет") << endl;
+	}
+
+
+
 };
 
-struct CS
+class CS
 {
+private:
 	string name;
 	int countWorkshops;
 	int workingWorkshops;
 	int classStation;
+
+public:
+	void setName(string value)
+	{
+		name = value;
+	}
+
+	string getName()
+	{
+		return name
+	}
+
+	void setCountWorkshops(int value)
+	{
+		countWorkshops = value;
+	}
+
+	int getCountWorkshops()
+	{
+		return countWorkshops;
+	}
+
+	void setWorkingWorkshops(int value)
+	{
+		workingWorkshops = value;
+	}
+
+	int getWorkingWorkshops()
+	{
+		return workingWorkshops;
+	}
+
+	void setClassStation(int value)
+	{
+		classStation = value;
+	}
+
+	int getClassStation()
+	{
+		return classStation;
+	}
+
+	void printCS()
+	{
+		cout << "Название КС: " << name << endl;
+		cout << "Количество цехов: " << countWorkshops << endl;
+		cout << "Количество цехов в работе: " << workingWorkshops << endl;
+		cout << "Класс станции: " << classStation << endl;
+	}
+
+
 };
 
 int proverkaVvoda()
@@ -37,24 +143,29 @@ int proverkaVvoda()
 
 void newPipe(Pipe& pipe)
 {
+	string name;
 	cout << "Введите название трубы : ";
-	getline(cin >> ws, pipe.name);
+	getline(cin >> ws, name);
+	pipe.setName(name);
 
 	cout << "Введите длину трубы(км): ";
-	pipe.length = proverkaVvoda();
-	while (pipe.length <= 0)
+	int length = proverkaVvoda();
+	while (length <= 0)
 	{
 		cout << "Ошибка. Введите положительное число: ";
-		pipe.length = proverkaVvoda();
+		length = proverkaVvoda();
 	}
+	pipe.setLength(length);
 
 	cout << "Введите диаметр трубы(мм): ";
-	pipe.diameter = proverkaVvoda();
-	while (pipe.diameter <= 0)
+	int diameter = proverkaVvoda();
+	while (diameter <= 0)
 	{
 		cout << "Ошибка. Введите положительное число";
-		pipe.diameter = proverkaVvoda();
+		diameter = proverkaVvoda();
 	}
+	pipe.setDiameter(diameter);
+
 	cout << "Труба в ремонте? (1 - да, 0 - нет): ";
 	int remont = proverkaVvoda();
 	while (remont < 0 || remont > 1)
@@ -62,56 +173,47 @@ void newPipe(Pipe& pipe)
 		cout << "Ошибка. Введите 1 или 0: ";
 		remont = proverkaVvoda();
 	}
-	pipe.repair = remont;
+	pipe.setRepair(remont);
 
 }
 
 void newCS(CS& cs)
 {
+	string name;
 	cout << "Введите название КС: ";
-	getline(cin >> ws, cs.name);
+	getline(cin >> ws, name);
+	cs.setName(name);
 
 	cout << "Введите количество цехов: ";
-	cs.countWorkshops = proverkaVvoda();
-	while (cs.countWorkshops <= 0)
+	int countWorkshops = proverkaVvoda();
+	while (countWorkshops <= 0)
 	{
 		cout << "Ошибка. Количество должно быть больше 0: ";
-		cs.countWorkshops = proverkaVvoda();
+		countWorkshops = proverkaVvoda();
 	}
+	cs.setCountWorkshops(countWorkshops);
 
 	cout << "Введите количество цехов в работе: ";
-	cs.workingWorkshops = proverkaVvoda();
-	while (cs.workingWorkshops < 0 || cs.workingWorkshops > cs.countWorkshops)
+	int workingWorkshops = proverkaVvoda();
+	while (workingWorkshops < 0 || workingWorkshops > countWorkshops)
 	{
-		cout << "Ошибка. Количество работающих цехов может быть от 0 до " << cs.countWorkshops << ": ";
-		cs.workingWorkshops = proverkaVvoda();
+		cout << "Ошибка. Количество работающих цехов может быть от 0 до " << countWorkshops << ": ";
+		workingWorkshops = proverkaVvoda();
 	}
+	cs.setWorkingWorkshops(workingWorkshops);
+
 	cout << "Введите класс станции (1 - маленькая, 2 - средняя, 3 - крупная): ";
-	cs.classStation = proverkaVvoda();
-	while (cs.classStation < 1 || cs.classStation >3)
+	int classStation = proverkaVvoda();
+	while (classStation < 1 || classStation >3)
 	{
 		cout << "Ошибка. Введите число от 1 до 3: ";
-		cs.classStation = proverkaVvoda();
+		classStation = proverkaVvoda();
 	}
+	cs.setClassStation(classStation);
 
 
 }
 
-void printPipe(const Pipe& pipe)
-{
-	cout << "Название трубы: " << pipe.name << endl;
-	cout << "Длина трубы: " << pipe.length << endl;
-	cout << "Диаметр трубы: " << pipe.diameter << endl;
-	cout << "Труба в ремонте?: " << (pipe.repair? "Да":"Нет") << endl;
-}
-
-void printCS(const CS& cs)
-{
-	cout << "Название КС: " << cs.name << endl;
-	cout << "Количество цехов: " << cs.countWorkshops << endl;
-	cout << "Количество цехов в работе: " << cs.workingWorkshops << endl;
-	cout << "Класс станции: " << cs.classStation << endl;
-}
 
 void editPipe(Pipe& pipe)
 {
@@ -129,8 +231,8 @@ void editPipe(Pipe& pipe)
 		vibor = proverkaVvoda();
 	}
 
-	pipe.repair = vibor;
-	cout << "Труба в ремонте: " << (vibor ? "Да" : "Нет") << endl;
+	pipe.setRepair(vibor == 1);
+	cout << "Труба в ремонте: " << (pipe.getRepair() ? "Да" : "Нет") << endl;
 }
 
 void editCS(CS& cs)
@@ -149,9 +251,9 @@ void editCS(CS& cs)
 
 	if (vibor == 1)
 	{
-		if (cs.workingWorkshops != cs.countWorkshops)
+		if (cs.getWorkingWorkshops() != cs.getCountWorkshops())
 		{
-			++cs.workingWorkshops;
+			++cs.setWorkingWorkshops();
 			cout << "Цех запущен" << endl;
 		}
 		else
@@ -161,9 +263,9 @@ void editCS(CS& cs)
 	}
 	if (vibor == 2)
 	{
-		if (cs.workingWorkshops > 0)
+		if (cs.getWorkingWorkshops() > 0)
 		{
-			--cs.workingWorkshops;
+			--cs.setWorkingWorkshops();
 			cout << "Цех остановлен" << endl;
 		}
 		else
