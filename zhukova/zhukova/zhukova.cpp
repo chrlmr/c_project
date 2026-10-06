@@ -2,8 +2,9 @@
 #include <iostream>
 #include <string>
 #include <fstream>
+#include "pipe.h"
 using namespace std;
-
+/*
 class Pipe
 {
 private:
@@ -20,7 +21,7 @@ public:
 
 	string getName()
 	{
-		return name
+		return name;
 	}
 
 	void setLength(int value)
@@ -442,5 +443,12 @@ int main()
 		}
 	}
 
+	return 0;
+}
+*/
+int main()
+{
+	Pipe p;
+	cout << p;
 	return 0;
 }
