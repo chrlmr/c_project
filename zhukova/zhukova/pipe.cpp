@@ -1,28 +1,29 @@
-#include <iostream>
+﻿#include <iostream>
+#include <fstream>
 #include <string>
+#include <algorithm>
 #include "pipe.h"
+#include "utils.h"
 
-//void Pipe::setName(std::string value)
-//{
-//	name = value;
-//}
-//void Pipe::setLength(int value)
-//{
-//	length = value;
-//}
-//
-//void Pipe::setDiameter(int value)
-//{
-//	diameter = value;
-//}
-//
-//void Pipe::setRepair(bool value)
-//{
-//	repair = value;
-//}
+int Pipe::MaxID = 0;
+
+Pipe::Pipe()
+{
+	id = MaxID++;
+	name = "";
+	length = 0;
+	diameter = 0;
+	repair = false;
+}
+
+int Pipe::getId() const
+{
+	return id;
+}
 
 std::ostream& operator << (std::ostream& out, const Pipe& pipe)
 {
+	out << "Id трубы: " << pipe.id << '\n';
 	out << "Название трубы: " << pipe.name << '\n';
 	out << "Длина трубы: " << pipe.length << '\n';
 	out << "Диаметр трубы: " << pipe.diameter << '\n';
@@ -33,19 +34,37 @@ std::ostream& operator << (std::ostream& out, const Pipe& pipe)
 std::istream& operator>>(std::istream& in, Pipe& pipe)
 {
 	std::cout << "Введите название трубы : ";
-	std::getline(in >> std::ws, pipe.name);
+	INPUT_LINE(in, pipe.name);
 
 	std::cout << "Введите длину трубы(км): ";
-	in >> pipe.length;
+	pipe.length = GetCorrectNumber(1, 100000);
 
 	std::cout << "Введите диаметр трубы(мм): ";
-	in >> pipe.diameter;
-	
+	pipe.diameter = GetCorrectNumber(1, 100000);
+
 	std::cout << "Труба в ремонте? (1 - да, 0 - нет): ";
-	int remont;
-	in >> remont;
-	
+	pipe.repair = GetCorrectNumber(0, 1);
 
 	return in;
+}
 
+std::ofstream& operator << (std::ofstream& out, const Pipe& pipe)
+{
+	out << pipe.id << std::endl;
+	out << pipe.name << std::endl;
+	out << pipe.length << std::endl;
+	out << pipe.diameter << std::endl;
+	out << pipe.repair << std::endl;
+	return out;
+}
+
+std::ifstream& operator >> (std::ifstream& in, Pipe& pipe)
+{
+	in >> pipe.id;
+	std::getline(in >> std::ws, pipe.name);
+	in >> pipe.length;
+	in >> pipe.diameter;
+	in >> pipe.repair;
+	Pipe::MaxID = std::max(Pipe::MaxID, pipe.id + 1);
+	return in;
 }

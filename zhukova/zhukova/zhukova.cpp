@@ -1,260 +1,144 @@
 ﻿
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
 #include <iostream>
 #include <string>
 #include <fstream>
+#include <vector>
+#include <unordered_map>
+#include <chrono>
+#include <format>
 #include "pipe.h"
+#include "CS.h"
+#include "utils.h"
 using namespace std;
-/*
-class Pipe
+using namespace chrono;
+
+//  Фильтры
+// Каждый фильтр: "подходит ли этот объект под условие?"
+
+bool CheckPipeByName(const Pipe& pipe, string param)
 {
-private:
-	string name;
-	int length;
-	int diameter;
-	bool repair;
-
-public:
-	void setName(string value)
-	{
-		name = value;
-	}
-
-	string getName()
-	{
-		return name;
-	}
-
-	void setLength(int value)
-	{
-		length = value;
-	}
-
-	int getLength()
-	{
-		return length;
-	}
-
-	void setDiameter(int value)
-	{
-		diameter = value;
-	}
-
-	int getDiameter()
-	{
-		return diameter;
-	}
-
-	void setRepair(bool value)
-	{
-		repair = value;
-	}
-
-	bool getRepair()
-	{
-		return repair;
-	}
-
-	void printPipe()
-	{
-		cout << "Название трубы: " << name << endl;
-		cout << "Длина трубы: " << length << endl;
-		cout << "Диаметр трубы: " << diameter << endl;
-		cout << "Труба в ремонте?: " << (repair ? "Да" : "Нет") << endl;
-	}
-
-
-
-};
-
-class CS
-{
-private:
-	string name;
-	int countWorkshops;
-	int workingWorkshops;
-	int classStation;
-
-public:
-	void setName(string value)
-	{
-		name = value;
-	}
-
-	string getName()
-	{
-		return name
-	}
-
-	void setCountWorkshops(int value)
-	{
-		countWorkshops = value;
-	}
-
-	int getCountWorkshops()
-	{
-		return countWorkshops;
-	}
-
-	void setWorkingWorkshops(int value)
-	{
-		workingWorkshops = value;
-	}
-
-	int getWorkingWorkshops()
-	{
-		return workingWorkshops;
-	}
-
-	void setClassStation(int value)
-	{
-		classStation = value;
-	}
-
-	int getClassStation()
-	{
-		return classStation;
-	}
-
-	void printCS()
-	{
-		cout << "Название КС: " << name << endl;
-		cout << "Количество цехов: " << countWorkshops << endl;
-		cout << "Количество цехов в работе: " << workingWorkshops << endl;
-		cout << "Класс станции: " << classStation << endl;
-	}
-
-
-};
-
-int proverkaVvoda()
-{
-	int number;
-	cin >> number;
-
-	while (cin.fail() || cin.peek() != '\n')
-	{
-		cin.clear();
-		cin.ignore(100, '\n');
-
-		cout << "Ошибка. Введите целое число: ";
-		cin >> number;
-	}
-	return number;
+	return pipe.name.find(param) != string::npos;   // название содержит param
 }
 
-void newPipe(Pipe& pipe)
+bool CheckPipeByRepair(const Pipe& pipe, bool param)
 {
-	string name;
-	cout << "Введите название трубы : ";
-	getline(cin >> ws, name);
-	pipe.setName(name);
-
-	cout << "Введите длину трубы(км): ";
-	int length = proverkaVvoda();
-	while (length <= 0)
-	{
-		cout << "Ошибка. Введите положительное число: ";
-		length = proverkaVvoda();
-	}
-	pipe.setLength(length);
-
-	cout << "Введите диаметр трубы(мм): ";
-	int diameter = proverkaVvoda();
-	while (diameter <= 0)
-	{
-		cout << "Ошибка. Введите положительное число";
-		diameter = proverkaVvoda();
-	}
-	pipe.setDiameter(diameter);
-
-	cout << "Труба в ремонте? (1 - да, 0 - нет): ";
-	int remont = proverkaVvoda();
-	while (remont < 0 || remont > 1)
-	{
-		cout << "Ошибка. Введите 1 или 0: ";
-		remont = proverkaVvoda();
-	}
-	pipe.setRepair(remont);
-
+	return pipe.repair == param;
 }
 
-void newCS(CS& cs)
+bool CheckCSByName(const CS& cs, string param)
 {
-	string name;
-	cout << "Введите название КС: ";
-	getline(cin >> ws, name);
-	cs.setName(name);
+	return cs.name.find(param) != string::npos;
+}
 
-	cout << "Введите количество цехов: ";
-	int countWorkshops = proverkaVvoda();
-	while (countWorkshops <= 0)
+bool CheckCSByUnused(const CS& cs, double param)
+{
+	return cs.getUnusedPercent() >= param;   // процент незадействованных цехов не меньше param
+}
+
+//  Вспомогательная функция 
+
+// есть ли число x в векторе v
+bool contains(const vector<int>& v, int x)
+{
+	for (int element : v)
 	{
-		cout << "Ошибка. Количество должно быть больше 0: ";
-		countWorkshops = proverkaVvoda();
+		if (element == x)
+			return true;
 	}
-	cs.setCountWorkshops(countWorkshops);
+	return false;
+}
 
-	cout << "Введите количество цехов в работе: ";
-	int workingWorkshops = proverkaVvoda();
-	while (workingWorkshops < 0 || workingWorkshops > countWorkshops)
-	{
-		cout << "Ошибка. Количество работающих цехов может быть от 0 до " << countWorkshops << ": ";
-		workingWorkshops = proverkaVvoda();
-	}
-	cs.setWorkingWorkshops(workingWorkshops);
+// 
+void addPipe(unordered_map<int, Pipe>& pipes)
+{
+	Pipe pipe;
+	cin >> pipe;
+	pipes.emplace(pipe.getId(), pipe);   // кладем трубу в map под ее id
+}
 
-	cout << "Введите класс станции (1 - маленькая, 2 - средняя, 3 - крупная): ";
-	int classStation = proverkaVvoda();
-	while (classStation < 1 || classStation >3)
-	{
-		cout << "Ошибка. Введите число от 1 до 3: ";
-		classStation = proverkaVvoda();
-	}
-	cs.setClassStation(classStation);
-
-
+void addCS(unordered_map<int, CS>& stations)
+{
+	CS cs;
+	cin >> cs;
+	stations.emplace(cs.getId(), cs);
 }
 
 
-void editPipe(Pipe& pipe)
+
+void showAll(const unordered_map<int, Pipe>& pipes, const unordered_map<int, CS>& stations)
+{
+	if (pipes.empty())
+		cout << "Трубы не созданы. Их просмотр невозможен." << endl;
+	for (const auto& [id, pipe] : pipes)
+		cout << pipe << endl;
+
+	if (stations.empty())
+		cout << "КС не созданы. Их просмотр невозможен." << endl;
+	for (const auto& [id, cs] : stations)
+		cout << cs << endl;
+}
+
+// вывод труб, id которых лежат в векторе ids
+void printPipes(const unordered_map<int, Pipe>& pipes, const vector<int>& ids)
+{
+	if (ids.empty())
+	{
+		cout << "Ничего не найдено" << endl;
+		return;
+	}
+	for (int id : ids)
+		cout << pipes.at(id) << endl;
+}
+
+// вывод КС, id которых лежат в векторе ids
+void printStations(const unordered_map<int, CS>& stations, const vector<int>& ids)
+{
+	if (ids.empty())
+	{
+		cout << "Ничего не найдено" << endl;
+		return;
+	}
+	for (int id : ids)
+		cout << stations.at(id) << endl;
+}
+
+
+void editPipe(Pipe& pipe, bool repair)
+{
+	pipe.repair = repair;
+}
+
+
+void chooseEditPipe(Pipe& pipe)
 {
 	cout << "Режим редактирования трубы" << endl;
 	cout << "Убрать из ремонта - 0" << endl;
 	cout << "Отправить в ремонт - 1" << endl;
 
 	cout << "Сделайте выбор: ";
+	int vibor = GetCorrectNumber(0, 1);
 
-	int vibor = proverkaVvoda();
-
-	while (vibor < 0 || vibor > 1)
-	{
-		cout << "Ошибка. Введите 0 или 1: ";
-		vibor = proverkaVvoda();
-	}
-
-	pipe.setRepair(vibor == 1);
-	cout << "Труба в ремонте: " << (pipe.getRepair() ? "Да" : "Нет") << endl;
+	editPipe(pipe, vibor == 1);
+	cout << pipe;
 }
+
 
 void editCS(CS& cs)
 {
 	cout << "Режим редактирования КС" << endl;
 	cout << "Запустить цех - 1" << endl;
 	cout << "Остановить цех - 2" << endl;
-	int vibor;
-	cout << "Сделайте выбор :" << endl;
-	vibor = proverkaVvoda();
-	while (vibor <1 || vibor >2)
-	{
-		cout << "Ошибка. Введите 1 или 2: ";
-		vibor = proverkaVvoda();
-	}
+
+	cout << "Сделайте выбор: ";
+	int vibor = GetCorrectNumber(1, 2);
 
 	if (vibor == 1)
 	{
-		if (cs.getWorkingWorkshops() != cs.getCountWorkshops())
+		if (cs.workingWorkshops != cs.countWorkshops)
 		{
-			++cs.setWorkingWorkshops();
+			++cs.workingWorkshops;
 			cout << "Цех запущен" << endl;
 		}
 		else
@@ -264,9 +148,9 @@ void editCS(CS& cs)
 	}
 	if (vibor == 2)
 	{
-		if (cs.getWorkingWorkshops() > 0)
+		if (cs.workingWorkshops > 0)
 		{
-			--cs.setWorkingWorkshops();
+			--cs.workingWorkshops;
 			cout << "Цех остановлен" << endl;
 		}
 		else
@@ -276,179 +160,296 @@ void editCS(CS& cs)
 	}
 }
 
-void savePipe(ofstream& file, const Pipe& pipe)
+// спрашивает id трубы и редактирует ее
+void editPipeById(unordered_map<int, Pipe>& pipes)
 {
-	if (pipe.name.empty()) {
-		return;
+	cout << "Введите id трубы: ";
+	int id = GetCorrectNumber(0, 100000);
+
+	if (pipes.count(id) == 0)
+		cout << "Трубы с таким id нет" << endl;
+	else
+		chooseEditPipe(pipes.at(id));
+}
+
+// спрашивает id КС и редактирует ее
+void editCSById(unordered_map<int, CS>& stations)
+{
+	cout << "Введите id КС: ";
+	int id = GetCorrectNumber(0, 100000);
+
+	if (stations.count(id) == 0)
+		cout << "КС с таким id нет" << endl;
+	else
+		editCS(stations.at(id));
+}
+
+
+
+void deletePipe(unordered_map<int, Pipe>& pipes)
+{
+	cout << "Введите id трубы: ";
+	int id = GetCorrectNumber(0, 100000);
+
+	if (pipes.count(id) == 0)
+		cout << "Трубы с таким id нет" << endl;
+	else
+	{
+		pipes.erase(id);
+		cout << "Труба удалена" << endl;
+	}
+}
+
+void deleteCS(unordered_map<int, CS>& stations)
+{
+	cout << "Введите id КС: ";
+	int id = GetCorrectNumber(0, 100000);
+
+	if (stations.count(id) == 0)
+		cout << "КС с таким id нет" << endl;
+	else
+	{
+		stations.erase(id);
+		cout << "КС удалена" << endl;
+	}
+}
+
+
+// Поиск возвращает вектор id найденных объектов 
+
+vector<int> searchPipes(const unordered_map<int, Pipe>& pipes)
+{
+	cout << "Поиск труб: 1 - по названию, 2 - по признаку \"в ремонте\": ";
+	int vibor = GetCorrectNumber(1, 2);
+
+	if (vibor == 1)
+	{
+		string name;
+		cout << "Введите название (или его часть): ";
+		INPUT_LINE(cin, name);
+		return FindByFilter(pipes, CheckPipeByName, name);
 	}
 
-	file << pipe.name << endl;
-	file << pipe.length << endl;
-	file << pipe.diameter << endl;
-	file << pipe.repair << endl;
+	cout << "Труба в ремонте? (1 - да, 0 - нет): ";
+	bool repair = GetCorrectNumber(0, 1);
+	return FindByFilter(pipes, CheckPipeByRepair, repair);
 }
 
-void saveCS(ofstream& file, const CS& cs)
+vector<int> searchCS(const unordered_map<int, CS>& stations)
 {
-	if (cs.name.empty()) {
-		return;
+	cout << "Поиск КС: 1 - по названию, 2 - по проценту незадействованных цехов: ";
+	int vibor = GetCorrectNumber(1, 2);
+
+	if (vibor == 1)
+	{
+		string name;
+		cout << "Введите название (или его часть): ";
+		INPUT_LINE(cin, name);
+		return FindByFilter(stations, CheckCSByName, name);
 	}
-	file << cs.name << endl;
-	file << cs.countWorkshops << endl;
-	file << cs.workingWorkshops << endl;
-	file << cs.classStation << endl;
+
+	cout << "Введите минимальный процент незадействованных цехов (0-100): ";
+	double percent = GetCorrectNumber(0.0, 100.0);
+	return FindByFilter(stations, CheckCSByUnused, percent);
 }
 
-void zagruzkaPipe(ifstream& file, Pipe& pipe)
+// Пакетное редактирование труб
+
+void batchEditPipes(unordered_map<int, Pipe>& pipes)
 {
-	getline(file >> ws, pipe.name);
-	file >> pipe.length;
-	file >> pipe.diameter;
-	file >> pipe.repair;
+	//  ищем подмножество и показываем его
+	vector<int> found = searchPipes(pipes);
+	printPipes(pipes, found);
+	if (found.empty())
+		return;
+
+	// выбираем, с какими трубами работать со всеми найденными или по id
+	vector<int> chosen = found;
+
+	cout << "1 - выбрать все найденные, 2 - выбрать по id: ";
+	int vibor = GetCorrectNumber(1, 2);
+
+	if (vibor == 2)
+	{
+		chosen.clear();
+
+		cout << "Сколько труб выбрать: ";
+		unsigned int count = GetCorrectNumber<uint64_t>(1, found.size());
+
+		while (chosen.size() < count)
+		{
+			cout << "Введите id трубы из найденных: ";
+			int id = GetCorrectNumber(0, 100000);
+
+			if (!contains(found, id))
+				cout << "Этого id нет среди найденных" << endl;
+			else if (contains(chosen, id))
+				cout << "Этот id уже выбран" << endl;
+			else
+				chosen.push_back(id);
+		}
+	}
+
+	//  выбираем действие и применяем ко всем выбранным
+	cout << "1 - убрать из ремонта, 2 - отправить в ремонт, 3 - удалить: ";
+	int action = GetCorrectNumber(1, 3);
+
+	for (int id : chosen)
+	{
+		if (action == 3)
+			pipes.erase(id);
+		else
+			editPipe(pipes.at(id), action == 2);
+	}
+	cout << "Обработано труб: " << chosen.size() << endl;
 }
 
-void zagruzkaCS(ifstream& file, CS&cs)
-{
-	getline(file >> ws, cs.name);
-	file >> cs.countWorkshops;
-	file >> cs.workingWorkshops;
-	file >> cs.classStation;
-}
 
 
-void saveFile(const Pipe& pipe, const CS& cs)
+void saveFile(const unordered_map<int, Pipe>& pipes, const unordered_map<int, CS>& stations)
 {
 	string name;
 	cout << "Введите имя файла с расширением: ";
-	getline(cin >> ws, name);
+	INPUT_LINE(cin, name);
 	ofstream file(name);
 
 	if (!file.is_open())
 	{
 		cout << "Ошибка открытия файла" << endl;
-		return; 
+		return;
 	}
-	
-	savePipe(file, pipe);
-	saveCS(file, cs);
-	cout << "Данные сохранены" << endl;
-	
 
+	// сначала количество труб, потом сами трубы
+	file << pipes.size() << endl;
+	for (const auto& [id, pipe] : pipes)
+		file << pipe;
+
+	// потом количество КС и сами КС
+	file << stations.size() << endl;
+	for (const auto& [id, cs] : stations)
+		file << cs;
+
+	cout << "Данные сохранены" << endl;
 }
 
-void zagruzitFile(Pipe& pipe, CS& cs)
+void zagruzitFile(unordered_map<int, Pipe>& pipes, unordered_map<int, CS>& stations)
 {
 	string name;
 	cout << "Введите имя файла с расширением: ";
-	getline(cin >> ws, name);
+	INPUT_LINE(cin, name);
 	ifstream file(name);
 
 	if (!file.is_open())
 	{
 		cout << "Ошибка чтения данных" << endl;
+		return;
 	}
-	else
-	{
-		zagruzkaPipe(file, pipe);
-		zagruzkaCS(file, cs);
-		cout << "Данные загружены" << endl;
-	}	
 
+
+	pipes.clear();
+	stations.clear();
+
+	int count;
+	file >> count;
+	while (count--)
+	{
+		Pipe pipe;
+		file >> pipe;
+		pipes.emplace(pipe.getId(), pipe);
+	}
+
+	file >> count;
+	while (count--)
+	{
+		CS cs;
+		file >> cs;
+		stations.emplace(cs.getId(), cs);
+	}
+
+	cout << "Данные загружены" << endl;
+}
+
+
+void printMenu()
+{
+	cout << "1. Добавить трубу" << endl;
+	cout << "2. Добавить КС" << endl;
+	cout << "3. Просмотр всех объектов" << endl;
+	cout << "4. Редактировать трубу" << endl;
+	cout << "5. Редактировать КС" << endl;
+	cout << "6. Сохранить" << endl;
+	cout << "7. Загрузить" << endl;
+	cout << "8. Удалить трубу" << endl;
+	cout << "9. Удалить КС" << endl;
+	cout << "10. Поиск труб" << endl;
+	cout << "11. Поиск КС" << endl;
+	cout << "12. Пакетное редактирование труб" << endl;
+	cout << "0. Выход" << endl;
+	cout << "Сделайте выбор: ";
 }
 
 int main()
 {
 	setlocale(LC_ALL, "RU");
+	SetConsoleCP(1251);
+	SetConsoleOutputCP(1251);
 
-	Pipe pipe;
-	CS cs;
+	// логирование
+	redirect_output_wrapper cerr_out(cerr);
+	string time = std::format("{:%d_%m_%Y %H_%M_%OS}", system_clock::now());
+	ofstream logfile("log_" + time + ".txt");
+	if (logfile)
+		cerr_out.redirect(logfile);
+
+	unordered_map<int, Pipe> pipes;
+	unordered_map<int, CS> stations;
 
 	while (true)
 	{
-		cout << "1. Добавить трубу" << endl;
-		cout << "2. Добавить КС" << endl;
-		cout << "3. Просмотр всех объектов" << endl;
-		cout << "4. Редактировать трубу" << endl;
-		cout << "5. Редактировать КС" << endl;
-		cout << "6. Сохранить" << endl;
-		cout << "7. Загрузить" << endl;
-		cout << "0. Выход" << endl;
+		printMenu();
 
-		int vibor;
-		cout << "Сделайте выбор: ";
-		vibor = proverkaVvoda();
-
-		while (vibor < 0 || vibor >7)
-		{
-			cout << "Ошибка. Введите число из меню: ";
-			vibor = proverkaVvoda();
-		}
-
-		switch (vibor)
+		switch (GetCorrectNumber(0, 12))
 		{
 		case 1:
-			newPipe(pipe);
+			addPipe(pipes);
 			break;
 		case 2:
-			newCS(cs);
+			addCS(stations);
 			break;
 		case 3:
-			if (pipe.name.empty())
-			{
-				cout << "Труба не создана. Ее просмотр невозможен." << endl;
-			}
-			else
-			{
-				printPipe(pipe);
-			}
-			if (cs.name.empty())
-			{
-				cout << "КС не создана. Ее просмотр невозможен." << endl;
-			}
-			else
-			{
-				printCS(cs);
-			}
+			showAll(pipes, stations);
 			break;
 		case 4:
-			if (pipe.name.empty())
-			{
-				cout << "Труба не создана. Редактирование невозможно." << endl;
-			}
-			else
-			{
-				editPipe(pipe);
-			}
+			editPipeById(pipes);
 			break;
 		case 5:
-			if (cs.name.empty())
-			{
-				cout << "КС не создана. Редактирование невозможно." << endl;
-			}
-			else
-			{
-				editCS(cs);
-			}
+			editCSById(stations);
 			break;
 		case 6:
-			saveFile(pipe, cs);
+			saveFile(pipes, stations);
 			break;
 		case 7:
-			zagruzitFile(pipe, cs);
+			zagruzitFile(pipes, stations);
+			break;
+		case 8:
+			deletePipe(pipes);
+			break;
+		case 9:
+			deleteCS(stations);
+			break;
+		case 10:
+			printPipes(pipes, searchPipes(pipes));
+			break;
+		case 11:
+			printStations(stations, searchCS(stations));
+			break;
+		case 12:
+			batchEditPipes(pipes);
 			break;
 		case 0:
 			return 0;
-		default:
-			cout << "Ошибка. Введите число из меню" << endl;
 		}
 	}
 
-	return 0;
-}
-*/
-int main()
-{
-	Pipe p;
-	cout << p;
 	return 0;
 }
