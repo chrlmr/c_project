@@ -397,7 +397,7 @@ int main()
 	// логирование
 	redirect_output_wrapper cerr_out(cerr);
 	string time = std::format("{:%d_%m_%Y %H_%M_%OS}", system_clock::now());
-	ofstream logfile("log_" + time + ".txt");
+	ofstream logfile("logs/log_" + time + ".txt");
 	if (logfile)
 		cerr_out.redirect(logfile);
 
