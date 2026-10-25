@@ -5,7 +5,7 @@
 #include "CS.h"
 #include "utils.h"
 
-int CS::MaxID = 0;
+int CS::MaxID = 1;
 
 CS::CS()
 {
