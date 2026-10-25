@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include <iostream>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 #define INPUT_LINE(in, str) getline(in>>std::ws, str); \
@@ -49,13 +50,13 @@ using Filter = bool(const Obj& obj, T param);
 
 
 template<typename Obj, typename T>
-std::vector<int> FindByFilter(const std::unordered_map<int, Obj>& objects, Filter<Obj, T> f, T param)
+std::unordered_set<int> FindByFilter(const std::unordered_map<int, Obj>& objects, Filter<Obj, T> f, T param)
 {
-	std::vector<int> res;
+	std::unordered_set<int> res;
 	for (const auto& [id, obj] : objects)
 	{
 		if (f(obj, param))
-			res.push_back(id);
+			res.insert(id);
 	}
 	return res;
 }

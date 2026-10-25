@@ -21,6 +21,10 @@ public:
 
 	int getId() const;
 
+	void edit();
+	void editRepair(bool value);
+	static void ResetMaxID();
+
 	friend std::ostream& operator << (std::ostream& out, const Pipe& pipe);
 	friend std::istream& operator >> (std::istream& in, Pipe& pipe);
 
@@ -29,5 +33,4 @@ public:
 
 	friend bool CheckPipeByName(const Pipe& pipe, std::string param);
 	friend bool CheckPipeByRepair(const Pipe& pipe, bool param);
-	friend void editPipe(Pipe& pipe, bool repair);
 };

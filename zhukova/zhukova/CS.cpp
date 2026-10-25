@@ -26,6 +26,49 @@ double CS::getUnusedPercent() const
 	return (countWorkshops - workingWorkshops) * 100.0 / countWorkshops;
 }
 
+
+void CS::ResetMaxID()
+{
+	MaxID = 1;
+}
+
+void CS::edit()
+{
+	std::cout << "Режим редактирования КС" << std::endl;
+	std::cout << "Запустить цех - 1" << std::endl;
+	std::cout << "Остановить цех - 2" << std::endl;
+
+	std::cout << "Сделайте выбор: ";
+	int vibor = GetCorrectNumber(1, 2);
+
+	if (vibor == 1)
+	{
+		if (workingWorkshops != countWorkshops)
+		{
+			++workingWorkshops;
+			std::cout << "Цех запущен" << std::endl;
+		}
+		else
+		{
+			std::cout << "Все цеха уже запущены" << std::endl;
+		}
+	}
+	if (vibor == 2)
+	{
+		if (workingWorkshops > 0)
+		{
+			--workingWorkshops;
+			std::cout << "Цех остановлен" << std::endl;
+		}
+		else
+		{
+			std::cout << "Невозможно остановить цех, т.к. нет запущенных цехов" << std::endl;
+		}
+	}
+}
+
+
+
 std::ostream& operator << (std::ostream& out, const CS& cs)
 {
 	out << "Id КС: " << cs.id << '\n';

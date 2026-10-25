@@ -23,6 +23,9 @@ public:
 
 	double getUnusedPercent() const;
 
+	void edit();
+	static void ResetMaxID();
+
 	friend std::ostream& operator << (std::ostream& out, const CS& cs);
 	friend std::istream& operator >> (std::istream& in, CS& cs);
 
@@ -31,5 +34,4 @@ public:
 
 
 	friend bool CheckCSByName(const CS& cs, std::string param);
-	friend void editCS(CS& cs);
 };

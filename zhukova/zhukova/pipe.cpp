@@ -5,7 +5,7 @@
 #include "pipe.h"
 #include "utils.h"
 
-int Pipe::MaxID = 0;
+int Pipe::MaxID = 1;
 
 Pipe::Pipe()
 {
@@ -20,6 +20,31 @@ int Pipe::getId() const
 {
 	return id;
 }
+
+void Pipe::ResetMaxID()
+{
+	MaxID = 1;
+}
+
+void Pipe::editRepair(bool value)
+{
+	repair = value;
+}
+
+void Pipe::edit()
+{
+	std::cout << "Режим редактирования трубы" << std::endl;
+	std::cout << "Убрать из ремонта - 0" << std::endl;
+	std::cout << "Отправить в ремонт - 1" << std::endl;
+
+	std::cout << "Сделайте выбор: ";
+	int vibor = GetCorrectNumber(0, 1);
+
+	editRepair(vibor == 1);
+}
+
+
+
 
 std::ostream& operator << (std::ostream& out, const Pipe& pipe)
 {
